@@ -1,0 +1,25 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Photo Gallery</title>
+  </head>
+  <body>
+    <h1>Upload Photo</h1>
+
+    <form method="POST" action="/upload" enctype="multipart/form-data">
+      <input type="file" name="photo" required />
+      <input type="text" name="description" placeholder="Description" />
+      <button type="submit">Upload</button>
+    </form>
+
+    <h2>Gallery</h2>
+
+    {% for p in photos %}
+      <div style="margin: 12px 0;">
+        <img src="{{ url_for('static', filename='uploads/' + p['filename']) }}" width="240" />
+        <div>{{ p['description'] }}</div>
+      </div>
+    {% endfor %}
+  </body>
+</html>
