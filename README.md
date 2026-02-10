@@ -2,21 +2,11 @@
 
 Small Flask app to upload and display photos; stores metadata in a MySQL-compatible database (your AWS RDS).
 
-Prerequisites
+## Prerequisites
 - Python 3.8+
 - An AWS RDS MySQL/Aurora instance (or other MySQL-compatible DB)
 
-.env example (fill with your values)
-
-DB_HOST=<your-rds-endpoint>
-DB_USER=<your-db-username>
-DB_PASSWORD=<your-db-password>
-DB_NAME=<your-database-name>
-FLASK_APP=app.py
-FLASK_ENV=development
-SECRET_KEY=replace_with_a_secure_random_value
-
-Install
+## Install
 
 ```powershell
 python -m venv venv
@@ -24,11 +14,18 @@ python -m venv venv
 pip install -r requirements.txt
 ```
 
-Run
+## Run
 
+### Testing 
 ```powershell
 python app.py
 # then open http://127.0.0.1:5000
+```
+
+### Production
+```powershell
+flask run --host=0.0.0.0
+# then open http://<your_ip>:5000
 ```
 
 Notes
@@ -40,5 +37,3 @@ Troubleshooting
 - Connection timeout / refused: verify `DB_HOST`, port 3306, and Security Group.
 - Authentication errors: verify `DB_USER` / `DB_PASSWORD` and that the user has privileges on `DB_NAME`.
 - File uploads not showing: ensure `static/uploads` exists or is writable; uploaded files are saved there.
-
-If you want, I can populate `.env` with placeholders, start the virtualenv, or run the app now.
