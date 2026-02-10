@@ -28,6 +28,16 @@ flask run --host=0.0.0.0
 # then open http://<your_ip>:5000
 ```
 
+To leave running even after exiting SSH:
+```powershell
+nohup flask run --host=0.0.0.0 --port=5000 &
+# output appended to nohup.out in the same directory
+# kill process using 
+sudo lsof -i :5000
+kill <PID>
+```
+
+
 Notes
 - The app calls `ensure_table()` on the index route to create the `photos` table if missing.
 - Make sure your RDS Security Group allows inbound TCP port 3306 from your machine's public IP. If you cannot open the DB publicly, run the app from an EC2 in the same VPC or use an SSH tunnel.
