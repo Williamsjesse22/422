@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, send_from_directory, abort
 import pymysql
 from dotenv import load_dotenv
 
@@ -41,12 +41,37 @@ def ensure_table():
 @app.route("/")
 def index():
     ensure_table()
+    q = request.args.get("q", "").strip()
     conn = get_connection()
     with conn.cursor() as cursor:
-        cursor.execute("SELECT filename, description FROM photos ORDER BY id DESC")
+        if q:
+            like = f"%{q}%"
+            cursor.execute(
+                "SELECT filename, description FROM photos WHERE filename LIKE %s OR description LIKE %s ORDER BY id DESC",
+                (like, like),
+            )
+        else:
+            cursor.execute("SELECT filename, description FROM photos ORDER BY id DESC")
         photos = cursor.fetchall()
     conn.close()
-    return render_template("index.html", photos=photos)
+    return render_template("index.html", photos=photos, q=q)
+
+
+@app.route('/download/<path:filename>')
+def download(filename):
+    # Only allow downloading files that exist in the DB to avoid exposing arbitrary files
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT 1 FROM photos WHERE filename = %s", (filename,))
+            found = cursor.fetchone()
+    finally:
+        conn.close()
+
+    if not found:
+        abort(404)
+
+    return send_from_directory(app.config["UPLOAD_FOLDER"], filename, as_attachment=True)
 
 @app.route("/upload", methods=["POST"])
 def upload():

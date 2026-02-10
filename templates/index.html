@@ -6,11 +6,19 @@
   </head>
   <body>
     <h1>Upload Photo</h1>
-
     <form method="POST" action="/upload" enctype="multipart/form-data">
       <input type="file" name="photo" required />
       <input type="text" name="description" placeholder="Description" />
       <button type="submit">Upload</button>
+    </form>
+
+    <h2>Search</h2>
+    <form method="GET" action="/">
+      <input type="text" name="q" placeholder="Search filename or description" value="{{ q or '' }}" />
+      <button type="submit">Search</button>
+      {% if q %}
+        <a href="/">Clear</a>
+      {% endif %}
     </form>
 
     <h2>Gallery</h2>
@@ -19,6 +27,7 @@
       <div style="margin: 12px 0;">
         <img src="{{ url_for('static', filename='uploads/' + p['filename']) }}" width="240" />
         <div>{{ p['description'] }}</div>
+        <div><a href="{{ url_for('download', filename=p['filename']) }}">Download</a></div>
       </div>
     {% endfor %}
   </body>
