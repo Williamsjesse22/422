@@ -1,5 +1,6 @@
 import os
-from flask import Flask, render_template, request, redirect, send_from_directory, abort
+from flask import Flask, render_template, request, redirect, send_from_directory, abort, session, url_for, flash
+from functools import wraps
 import pymysql
 from dotenv import load_dotenv
 
@@ -7,6 +8,12 @@ load_dotenv()
 
 app = Flask(__name__)
 app.config["UPLOAD_FOLDER"] = "static/uploads"
+
+# Session / auth settings
+SECRET_KEY = os.getenv("SECRET_KEY", "change-this")
+APP_USER = os.getenv("APP_USER")
+APP_PASSWORD = os.getenv("APP_PASSWORD")
+app.secret_key = SECRET_KEY
 
 DB_HOST = os.getenv("DB_HOST")
 DB_USER = os.getenv("DB_USER")
@@ -38,7 +45,36 @@ def ensure_table():
     conn.commit()
     conn.close()
 
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not session.get("logged_in"):
+            return redirect(url_for("login", next=request.path))
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+@app.route('/login', methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        username = request.form.get('username')
+        password = request.form.get('password')
+        if APP_USER and APP_PASSWORD and username == APP_USER and password == APP_PASSWORD:
+            session['logged_in'] = True
+            next_url = request.args.get('next') or url_for('index')
+            return redirect(next_url)
+        flash('Invalid username or password')
+    return render_template('login.html')
+
+
+@app.route('/logout')
+def logout():
+    session.pop('logged_in', None)
+    return redirect(url_for('login'))
+
+
 @app.route("/")
+@login_required
 def index():
     ensure_table()
     q = request.args.get("q", "").strip()
@@ -58,6 +94,7 @@ def index():
 
 
 @app.route('/download/<path:filename>')
+@login_required
 def download(filename):
     # Only allow downloading files that exist in the DB to avoid exposing arbitrary files
     conn = get_connection()
@@ -74,6 +111,7 @@ def download(filename):
     return send_from_directory(app.config["UPLOAD_FOLDER"], filename, as_attachment=True)
 
 @app.route("/upload", methods=["POST"])
+@login_required
 def upload():
     ensure_table()
 

@@ -5,6 +5,7 @@
     <title>Photo Gallery</title>
   </head>
   <body>
+    <div style="float: right;"><a href="{{ url_for('logout') }}">Logout</a></div>
     <h1>Upload Photo</h1>
     <form method="POST" action="/upload" enctype="multipart/form-data">
       <input type="file" name="photo" required />
